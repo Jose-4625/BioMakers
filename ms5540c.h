@@ -27,28 +27,29 @@ class MS5440C{
     // Pins
     int MOSI; // Din
     int MISO; // Dout
-    int SCK;
+    int SCLK;
     int MCLK;
     
     void resetSensor();
     void temperature();
     void rawPressure();
     void compPressure();
+    void factorsFromWords();
     void secondDegCompPressure();
     void calibration();
-    MS5440C(int MOSI = 11, int MISO = 12, int SCK = 13, int MCLK = 9); //constructor
+    MS5440C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9); //constructor
 
 };
 
 // default constructor
 MS5440C::MS5440C(){
-  MS5440C(int MOSI = 11, int MISO = 12, int SCK = 13, int MCLK = 9);
+  MS5440C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9);
 }
 // Parameterized constructor
-MS5440C::MS5440C(int MOSI = 11, int MISO = 12, int SCK = 13, int MCLK = 9) {
+MS5440C::MS5440C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9) {
   MOSI = MOSI;
   MISO = MISO;
-  SCK = SCK;
+  SCLK = SCLK;
   MCLK = MCLK;
   Serial.begin(9600);
   SPI.begin(); //see SPI library details on arduino.cc for details
@@ -166,6 +167,18 @@ void MS5440C::calibration()
 
   resetsensor(); //resets the sensor
 }
+
+// get appropriate factors from calibration words
+void MS5440C::factorsFromWords(){
+  c1 = (cw1 >> 1) & 0x7FFF;
+  c2 = ((cw3 & 0x003F) << 6) | (cw4 & 0x003F);
+  c3 = (cw4 >> 6) & 0x03FF;
+  c4 = (cw3 >> 6) & 0x03FF;
+  c5 = ((cw1 & 0x0001) << 10) | ((cw2 >> 6) & 0x03FF);
+  c6 = cw2 & 0x003F;
+  resetsensor();
+}
+
 void MS5440C::rawPressure(void){
     unsigned int presMSB = 0; //first byte of value
     unsigned int presLSB = 0; //last byte of value
@@ -213,10 +226,10 @@ void MS5440C::compPressure(){
   long PCOMP = ((X * 10) >> 5) + 2500;
   float TEMPREAL = TEMP/10;
   float PCOMPHG = PCOMP * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
+  temp = TEMPREAL
 
   Serial.print("Real Temperature in C = ");
   Serial.println(TEMPREAL);
-
   Serial.print("Compensated pressure in mbar = ");
   Serial.println(PCOMP);
   Serial.print("Compensated pressure in mmHg = ");
