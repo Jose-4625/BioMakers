@@ -72,7 +72,7 @@ void MS5440C::calibration()
   TCCR1B = (TCCR1B & 0xF8) | 1 ; //generates the MCKL signal
   analogWrite (MCLK, 128) ;
 
-  resetsensor(); //resets the sensor - caution: afterwards mode = SPI_MODE0!
+  resetSensor(); //resets the sensor - caution: afterwards mode = SPI_MODE0!
 
   //Calibration word 1
   unsigned int result1 = 0;
@@ -90,7 +90,7 @@ void MS5440C::calibration()
   Serial.println(result1);
   cw1 = result1; 
 
-  resetsensor(); //resets the sensor
+  resetSensor(); //resets the sensor
 
   //Calibration word 2; see comments on calibration word 1
   unsigned int result2 = 0;
@@ -108,7 +108,7 @@ void MS5440C::calibration()
   Serial.println(result2);
   cw2 = result2 
 
-  resetsensor(); //resets the sensor
+  resetSensor(); //resets the sensor
 
   //Calibration word 3; see comments on calibration word 1
   unsigned int result3 = 0;
@@ -125,7 +125,7 @@ void MS5440C::calibration()
   Serial.print(" "); 
   Serial.println(result3); 
   cw3 = result3
-  resetsensor(); //resets the sensor
+  resetSensor(); //resets the sensor
 
   //Calibration word 4; see comments on calibration word 1
   unsigned int result4 = 0;
@@ -165,7 +165,7 @@ void MS5440C::calibration()
   Serial.print("c6 = ");
   Serial.println(c6);
 
-  resetsensor(); //resets the sensor
+  resetSensor(); //resets the sensor
 }
 
 // get appropriate factors from calibration words
@@ -176,7 +176,7 @@ void MS5440C::factorsFromWords(){
   c4 = (cw3 >> 6) & 0x03FF;
   c5 = ((cw1 & 0x0001) << 10) | ((cw2 >> 6) & 0x03FF);
   c6 = cw2 & 0x003F;
-  resetsensor();
+  resetSensor();
 }
 
 void MS5440C::rawPressure(void){
@@ -194,7 +194,7 @@ void MS5440C::rawPressure(void){
     Serial.print("D1 - Pressure raw = ");
     Serial.println(D1);
 
-    resetsensor(); //resets the sensor
+    resetSensor(); //resets the sensor
   }
    
 
@@ -213,6 +213,7 @@ void MS5440C::temperature(){
   Serial.print("D2 - Temperature raw = ");
   Serial.println(D2); //voila!
   rawtemp = D2;
+  resetSensor();
 }
 void MS5440C::compPressure(){
   //calculation of the real values by means of the calibration factors and the maths
@@ -234,6 +235,7 @@ void MS5440C::compPressure(){
   Serial.println(PCOMP);
   Serial.print("Compensated pressure in mmHg = ");
   Serial.println(PCOMPHG);
+  resetSensor();
 }
 void MS5440C::secondDegCompPressure(){
   //2-nd order compensation only for T < 20°C or T > 45°C
@@ -268,4 +270,5 @@ void MS5440C::secondDegCompPressure(){
     Serial.print("2-nd Compensated pressure in mmHg = ");
     Serial.println(PCOMPHG2);
   }
+  resetSensor();
 }
