@@ -21,6 +21,10 @@ class MS5440C{
     long c4;
     long c5;
     long c6;
+    // Pressure
+    int rawPressure;
+    int Pressure;
+    int secondOrderPressure;
     // Temperature
     int rawtemp;
     int temp;
@@ -29,6 +33,10 @@ class MS5440C{
     int MISO; // Dout
     int SCLK;
     int MCLK;
+
+    // Second order pressure
+    long pcomp;
+    long ptemp;
     
     void resetSensor();
     void temperature();
@@ -193,6 +201,7 @@ void MS5440C::rawPressure(void){
     D1 = presMSB | presLSB; //combine first and second byte of value
     Serial.print("D1 - Pressure raw = ");
     Serial.println(D1);
+    rawPressure = D1;
 
     resetSensor(); //resets the sensor
   }
@@ -219,15 +228,17 @@ void MS5440C::compPressure(){
   //calculation of the real values by means of the calibration factors and the maths
   //in the datasheet. const MUST be long
   const long UT1 = (c5 << 3) + 20224;
-  const long dT = D2 - UT1;
+  const long dT = rawtemp - UT1;
   const long TEMP = 200 + ((dT * (c6 + 50)) >> 10);
   const long OFF  = (c2 * 4) + (((c4 - 512) * dT) >> 12);
   const long SENS = c1 + ((c3 * dT) >> 10) + 24576;
-  const long X = (SENS * (D1 - 7168) >> 14) - OFF;
+  const long X = (SENS * (rawPressure - 7168) >> 14) - OFF;
   long PCOMP = ((X * 10) >> 5) + 2500;
   float TEMPREAL = TEMP/10;
   float PCOMPHG = PCOMP * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
-  temp = TEMPREAL
+  temp = TEMPREAL;
+  pcomp = PCOMP;
+  ptemp = TEMP;
 
   Serial.print("Real Temperature in C = ");
   Serial.println(TEMPREAL);
@@ -243,21 +254,21 @@ void MS5440C::secondDegCompPressure(){
   long T2 = 0;
   float P2 = 0;
 
-  if (TEMP < 200)
+  if (ptemp < 200)
     {
-      T2 = (11 * (c6 + 24) * (200 - TEMP) * (200 - TEMP) ) >> 20;
-      P2 = (3 * T2 * (PCOMP - 3500) ) >> 14;
+      T2 = (11 * (c6 + 24) * (200 - ptemp) * (200 - ptemp) ) >> 20;
+      P2 = (3 * T2 * (pcomp - 3500) ) >> 14;
     }
-  else if (TEMP > 450)
+  else if (ptemp > 450)
     {
-      T2 = (3 * (c6 + 24) * (450 - TEMP) * (450 - TEMP) ) >> 20;
-      P2 = (T2 * (PCOMP - 10000) ) >> 13;   
+      T2 = (3 * (c6 + 24) * (450 - ptemp) * (450 - ptemp) ) >> 20;
+      P2 = (T2 * (pcomp - 10000) ) >> 13;   
     }
 
-  if ((TEMP < 200) || (TEMP > 450))
+  if ((ptemp < 200) || (ptemp > 450))
   {
-    const float TEMP2 = TEMP - T2;
-    const float PCOMP2 = PCOMP - P2;
+    const float TEMP2 = ptemp - T2;
+    const float PCOMP2 = pcomp - P2;
 
     float TEMPREAL2 = TEMP2/10;
     float PCOMPHG2 = PCOMP2 * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
