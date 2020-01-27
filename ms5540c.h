@@ -1,38 +1,12 @@
 /*
- MS5540C Miniature Barometer Module
- This program will read your MS5440C or compatible pressure sensor every 5 seconds and show you the calibration words, the calibration factors,
- the raw values and the compensated values of temperature and pressure.
+ MS5540C Pressure Sensor
  Once you read out the calibration factors you can define them in the header of any sketch you write for the sensor.
- 
-Pins:
- MS5540 sensor attached to pins 10 - 13:
- MOSI: pin 11
- MISO: pin 12
- SCK: pin 13
- MCLK: pin 9 (or use external clock generator on 32kHz)
- CS is not in use, but might be pin 10
- 
- created 29 February 2012
- by MiGeRA
 */
 
-/*
- Calibration of my sensor example ...
- 
- Calibration word 1 = 46958
- Calibration word 2 = 65369
- Calibration word 3 = 39392
- Calibration word 4 = 45914
- c1 = 23479
- c2 = 2074
- c3 = 717
- c4 = 615
- c5 = 1021
- c6 = 25
-*/
 
 // include library:
 #include <SPI.h>
+
 class MS5440C{
   public:
     // Calibration words 1-4
@@ -50,6 +24,11 @@ class MS5440C{
     // Temperature
     int rawtemp;
     int temp;
+    // Pins
+    int MOSI; // Din
+    int MISO; // Dout
+    int SCK;
+    int MCLK;
     
     void resetSensor();
     void temperature();
@@ -58,10 +37,26 @@ class MS5440C{
     void secondDegCompPressure();
     void calibration();
     MS5440C(int MOSI = 11, int MISO = 12, int SCK = 13, int MCLK = 9); //constructor
-    ~MS5440C(); // destructor
 
 };
 
+// default constructor
+MS5440C::MS5440C(){
+  MS5440C(int MOSI = 11, int MISO = 12, int SCK = 13, int MCLK = 9);
+}
+// Parameterized constructor
+MS5440C::MS5440C(int MOSI = 11, int MISO = 12, int SCK = 13, int MCLK = 9) {
+  MOSI = MOSI;
+  MISO = MISO;
+  SCK = SCK;
+  MCLK = MCLK;
+  Serial.begin(9600);
+  SPI.begin(); //see SPI library details on arduino.cc for details
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setClockDivider(SPI_CLOCK_DIV32); //divide 16 MHz to communicate on 500 kHz
+  pinMode(MCLK, OUTPUT);
+  delay(100);
+}
 
 void MS5440C::resetSensor() //this function keeps the sketch a little shorter
 {
@@ -69,15 +64,6 @@ void MS5440C::resetSensor() //this function keeps the sketch a little shorter
   SPI.transfer(0x15);
   SPI.transfer(0x55);
   SPI.transfer(0x40);
-}
-
-void MS5440C::MS5440C() {
-  Serial.begin(9600);
-  SPI.begin(); //see SPI library details on arduino.cc for details
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV32); //divide 16 MHz to communicate on 500 kHz
-  pinMode(MCLK, OUTPUT);
-  delay(100);
 }
 
 void MS5440C::calibration()
@@ -227,21 +213,6 @@ void MS5440C::compPressure(){
   long PCOMP = ((X * 10) >> 5) + 2500;
   float TEMPREAL = TEMP/10;
   float PCOMPHG = PCOMP * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
- 
-  /*
-  Serial.print("UT1 = ");
-  Serial.println(UT1);
-  Serial.print("dT = ");
-  Serial.println(dT);
-  Serial.print("TEMP = ");
-  Serial.println(TEMP);
-  Serial.print("OFFP = ");
-  Serial.println(OFF);
-  Serial.print("SENS = ");
-  Serial.println(SENS);
-  Serial.print("X = ");
-  Serial.println(X);
-  */
 
   Serial.print("Real Temperature in C = ");
   Serial.println(TEMPREAL);
