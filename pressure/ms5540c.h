@@ -50,9 +50,9 @@ class MS5540C{
 };
 
 // default constructor
-/*MS5540C::MS5540C(){
-  MS5540C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9);
-}*/
+//MS5540C::MS5540C(){
+  //MS5540C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9);
+//}
 // Parameterized constructor
 MS5540C::MS5540C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9) {
   MOSI = MOSI;
@@ -132,7 +132,7 @@ void MS5540C::calibration()
   Serial.print(result3,HEX);
   Serial.print(" ");
   Serial.println(result3);
-  cw3 = result3;
+  cw3 = result3
   resetSensor(); //resets the sensor
 
   //Calibration word 4; see comments on calibration word 1
@@ -149,7 +149,7 @@ void MS5540C::calibration()
   Serial.print(result4,HEX);
   Serial.print(" ");
   Serial.println(result4);
-  cw4 = result4;
+  cw4 = result4
 
   //now we do some bitshifting to extract the calibration factors
   //out of the calibration words;
