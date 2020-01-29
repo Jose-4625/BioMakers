@@ -45,7 +45,7 @@ class MS5540C{
     void factorsFromWords();
     void secondDegCompPressure();
     void calibration();
-    MS5540C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9); //constructor
+    MS5540C(int MOSI, int MISO, int SCLK, int MCLK); //constructor
 
 };
 
