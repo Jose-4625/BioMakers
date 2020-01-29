@@ -22,7 +22,7 @@ class MS5540C{
     long c5;
     long c6;
     // Pressure
-    int rawPress;
+    int rawPressure;
     int Pressure;
     int secondOrderPressure;
     // Temperature
@@ -201,7 +201,7 @@ void MS5540C::rawPressure(void){
     D1 = presMSB | presLSB; //combine first and second byte of value
     Serial.print("D1 - Pressure raw = ");
     Serial.println(D1);
-    rawPress = D1;
+    rawPressure = D1;
 
     resetSensor(); //resets the sensor
   }
@@ -232,7 +232,7 @@ void MS5540C::compPressure(){
   const long TEMP = 200 + ((dT * (c6 + 50)) >> 10);
   const long OFF  = (c2 * 4) + (((c4 - 512) * dT) >> 12);
   const long SENS = c1 + ((c3 * dT) >> 10) + 24576;
-  const long X = (SENS * (rawPress - 7168) >> 14) - OFF;
+  const long X = (SENS * (rawPressure - 7168) >> 14) - OFF;
   long PCOMP = ((X * 10) >> 5) + 2500;
   float TEMPREAL = TEMP/10;
   float PCOMPHG = PCOMP * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
