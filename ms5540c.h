@@ -7,7 +7,7 @@
 // include library:
 #include <SPI.h>
 
-class MS5440C{
+class MS5540C{
   public:
     // Calibration words 1-4
     long cw1;
@@ -37,7 +37,7 @@ class MS5440C{
     // Second order pressure
     long pcomp;
     long ptemp;
-    
+
     void resetSensor();
     void temperature();
     void rawPressure();
@@ -45,16 +45,16 @@ class MS5440C{
     void factorsFromWords();
     void secondDegCompPressure();
     void calibration();
-    MS5440C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9); //constructor
+    MS5540C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9); //constructor
 
 };
 
 // default constructor
-MS5440C::MS5440C(){
-  MS5440C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9);
+MS5540C::MS5540C(){
+  MS5540C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9);
 }
 // Parameterized constructor
-MS5440C::MS5440C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9) {
+MS5540C::MS5540C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9) {
   MOSI = MOSI;
   MISO = MISO;
   SCLK = SCLK;
@@ -67,7 +67,7 @@ MS5440C::MS5440C(int MOSI = 11, int MISO = 12, int SCLK = 13, int MCLK = 9) {
   delay(100);
 }
 
-void MS5440C::resetSensor() //this function keeps the sketch a little shorter
+void MS5540C::resetSensor() //this function keeps the sketch a little shorter
 {
   SPI.setDataMode(SPI_MODE0);
   SPI.transfer(0x15);
@@ -75,7 +75,7 @@ void MS5440C::resetSensor() //this function keeps the sketch a little shorter
   SPI.transfer(0x40);
 }
 
-void MS5440C::calibration()
+void MS5540C::calibration()
 {
   TCCR1B = (TCCR1B & 0xF8) | 1 ; //generates the MCKL signal
   analogWrite (MCLK, 128) ;
@@ -94,9 +94,9 @@ void MS5440C::calibration()
   result1 = result1 | inbyte1; //combine first and second byte of word
   Serial.print("Calibration word 1 = ");
   Serial.print(result1,HEX);
-  Serial.print(" "); 
+  Serial.print(" ");
   Serial.println(result1);
-  cw1 = result1; 
+  cw1 = result1;
 
   resetSensor(); //resets the sensor
 
@@ -111,10 +111,10 @@ void MS5440C::calibration()
   inbyte2 = SPI.transfer(0x00);
   result2 = result2 | inbyte2;
   Serial.print("Calibration word 2 = ");
-  Serial.print(result2,HEX); 
-  Serial.print(" "); 
+  Serial.print(result2,HEX);
+  Serial.print(" ");
   Serial.println(result2);
-  cw2 = result2 
+  cw2 = result2
 
   resetSensor(); //resets the sensor
 
@@ -129,9 +129,9 @@ void MS5440C::calibration()
   inbyte3 = SPI.transfer(0x00);
   result3 = result3 | inbyte3;
   Serial.print("Calibration word 3 = ");
-  Serial.print(result3,HEX); 
-  Serial.print(" "); 
-  Serial.println(result3); 
+  Serial.print(result3,HEX);
+  Serial.print(" ");
+  Serial.println(result3);
   cw3 = result3
   resetSensor(); //resets the sensor
 
@@ -147,8 +147,8 @@ void MS5440C::calibration()
   result4 = result4 | inbyte4;
   Serial.print("Calibration word 4 = ");
   Serial.print(result4,HEX);
-  Serial.print(" "); 
-  Serial.println(result4); 
+  Serial.print(" ");
+  Serial.println(result4);
   cw4 = result4
 
   //now we do some bitshifting to extract the calibration factors
@@ -177,7 +177,7 @@ void MS5440C::calibration()
 }
 
 // get appropriate factors from calibration words
-void MS5440C::factorsFromWords(){
+void MS5540C::factorsFromWords(){
   c1 = (cw1 >> 1) & 0x7FFF;
   c2 = ((cw3 & 0x003F) << 6) | (cw4 & 0x003F);
   c3 = (cw4 >> 6) & 0x03FF;
@@ -187,7 +187,7 @@ void MS5440C::factorsFromWords(){
   resetSensor();
 }
 
-void MS5440C::rawPressure(void){
+void MS5540C::rawPressure(void){
     unsigned int presMSB = 0; //first byte of value
     unsigned int presLSB = 0; //last byte of value
     unsigned int D1 = 0;
@@ -205,9 +205,9 @@ void MS5440C::rawPressure(void){
 
     resetSensor(); //resets the sensor
   }
-   
 
-void MS5440C::temperature(){
+
+void MS5540C::temperature(){
   unsigned int tempMSB = 0; //first byte of value
   unsigned int tempLSB = 0; //last byte of value
   unsigned int D2 = 0;
@@ -224,7 +224,7 @@ void MS5440C::temperature(){
   rawtemp = D2;
   resetSensor();
 }
-void MS5440C::compPressure(){
+void MS5540C::compPressure(){
   //calculation of the real values by means of the calibration factors and the maths
   //in the datasheet. const MUST be long
   const long UT1 = (c5 << 3) + 20224;
@@ -248,9 +248,9 @@ void MS5440C::compPressure(){
   Serial.println(PCOMPHG);
   resetSensor();
 }
-void MS5440C::secondDegCompPressure(){
+void MS5540C::secondDegCompPressure(){
   //2-nd order compensation only for T < 20°C or T > 45°C
- 
+
   long T2 = 0;
   float P2 = 0;
 
@@ -262,7 +262,7 @@ void MS5440C::secondDegCompPressure(){
   else if (ptemp > 450)
     {
       T2 = (3 * (c6 + 24) * (450 - ptemp) * (450 - ptemp) ) >> 20;
-      P2 = (T2 * (pcomp - 10000) ) >> 13;   
+      P2 = (T2 * (pcomp - 10000) ) >> 13;
     }
 
   if ((ptemp < 200) || (ptemp > 450))
