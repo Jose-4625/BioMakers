@@ -297,6 +297,7 @@ void MS5540C::measure(int raw = 0){
   Serial.print("Compensated pressure in mmHg = ");
   Serial.println(PCOMPHG);
 }
+
 void MS5540C::secondDegCompPressure(){
   //2-nd order compensation only for T < 20°C or T > 45°C
 
