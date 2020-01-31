@@ -32,12 +32,14 @@ class MS5540C{
     float temp;
 
     // Second order pressure
+    float pcompreal;
+    float pcomphg;
     long pcomp;
     long ptemp;
 
     void resetSensor();
     void spiCheck();
-    void measure(int raw);
+    void measure(int printOut, int raw);
     void factorsFromWords();
     void secondDegCompPressure();
     void calibration(int readOut);
@@ -202,7 +204,7 @@ void MS5540C::factorsFromWords(){
   resetSensor();
 }
 
-void MS5540C::measure(int raw = 0){
+void MS5540C::measure(int printOut = 0, int raw = 0){
     spiCheck();
     unsigned int presMSB = 0; //first byte of value
     unsigned int presLSB = 0; //last byte of value
@@ -256,6 +258,8 @@ void MS5540C::measure(int raw = 0){
   float PCOMPREAL = PCOMP / 10;
   float PCOMPHG = PCOMP * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
   temp = TEMPREAL;
+  pcompreal = PCOMPREAL;
+  pcomphg = PCOMPHG;
   pcomp = PCOMP;
   ptemp = TEMP;
   /*Serial.print("===========\n");
@@ -289,13 +293,15 @@ void MS5540C::measure(int raw = 0){
     Serial.println(X);
   }
   
+  if(printOut){
+    Serial.print("Real Temperature in C = ");
+    Serial.println(TEMPREAL);
+    Serial.print("Compensated pressure in mbar = ");
+    Serial.println(PCOMPREAL);
+    Serial.print("Compensated pressure in mmHg = ");
+    Serial.println(PCOMPHG);
+  }
   
-  Serial.print("Real Temperature in C = ");
-  Serial.println(TEMPREAL);
-  Serial.print("Compensated pressure in mbar = ");
-  Serial.println(PCOMPREAL);
-  Serial.print("Compensated pressure in mmHg = ");
-  Serial.println(PCOMPHG);
 }
 void MS5540C::secondDegCompPressure(){
   //2-nd order compensation only for T < 20°C or T > 45°C
