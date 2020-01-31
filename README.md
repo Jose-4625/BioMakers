@@ -25,8 +25,8 @@ void setup(){
 }
 void loop(){
 	static MS5540C snr;	// static allows for fixed memory allocation of the MS5540C object
-  snr.calibration();
-  snr.measure();
+  	snr.calibration();
+  	snr.measure();
 
 	// snr.pcompreal/pcomphg/temp depending on data needed
 	Serial.println(snr.pcompreal)
