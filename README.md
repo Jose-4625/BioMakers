@@ -3,10 +3,13 @@
 Library for MS5540C pressure sensor
 * call MS5540C constructor in the setup portion of the arduino sketch
 * Default Constructor has Pin definitions as follows:
-	* MOSI = 11
-	* MISO = 12
 	* SCLK = 13
+	* MISO (DOUT) = 12
+	* MOSI (DIN)= 11
 	* MCLK = 9
+	* VCC = 5V
+	* GND = GND
+
 * All Calibration is done at initialization
 * measure(int printOut = 0, int raw = 0)
 	* printOut = 1; Auto prints to Serial
