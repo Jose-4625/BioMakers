@@ -41,7 +41,7 @@ class MS5540C{
     void spiCheck();
     void measure(int printOut, int raw);
     void factorsFromWords();
-    void secondDegCompPressure();
+    void secondDegCompPressure(int val);
     void calibration(int readOut);
     MS5540C(); //constructor
     //MS5540C();
@@ -292,18 +292,23 @@ void MS5540C::measure(int printOut = 0, int raw = 0){
     Serial.print("X = ");
     Serial.println(X);
   }
-
-  if(printOut){
-    Serial.print("Real Temperature in C = ");
-    Serial.println(TEMPREAL);
-    Serial.print("Compensated pressure in mbar = ");
-    Serial.println(PCOMPREAL);
-    Serial.print("Compensated pressure in mmHg = ");
-    Serial.println(PCOMPHG);
+  if (TEMPREAL < 20 or TEMPREAL > 45){
+    secondDegCompPressure(printOut)
+  }else{
+    if(printOut){
+      Serial.print("Real Temperature in C = ");
+      Serial.println(TEMPREAL);
+      Serial.print("Compensated pressure in mbar = ");
+      Serial.println(PCOMPREAL);
+      Serial.print("Compensated pressure in mmHg = ");
+      Serial.println(PCOMPHG);
+    }
   }
 
+
+
 }
-void MS5540C::secondDegCompPressure(){
+void MS5540C::secondDegCompPressure(int val){
   //2-nd order compensation only for T < 20°C or T > 45°C
 
   long T2 = 0;
@@ -327,13 +332,20 @@ void MS5540C::secondDegCompPressure(){
 
     float TEMPREAL2 = TEMP2/10;
     float PCOMPHG2 = PCOMP2 * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
+    temp = TEMPREAL2;
+    pcompreal = PCOMP2;
+    pcomphg = PCOMPHG2;
+    pcomp = PCOMP2;
+    ptemp = TEMP;
+    if(val){
+      Serial.print("2-nd Real Temperature in C = ");
+      Serial.println(TEMPREAL2);
 
-    Serial.print("2-nd Real Temperature in C = ");
-    Serial.println(TEMPREAL2);
+      Serial.print("2-nd Compensated pressure in mbar = ");
+      Serial.println(PCOMP2);
+      Serial.print("2-nd Compensated pressure in mmHg = ");
+      Serial.println(PCOMPHG2);
+    }
 
-    Serial.print("2-nd Compensated pressure in mbar = ");
-    Serial.println(PCOMP2);
-    Serial.print("2-nd Compensated pressure in mmHg = ");
-    Serial.println(PCOMPHG2);
   }
 }
