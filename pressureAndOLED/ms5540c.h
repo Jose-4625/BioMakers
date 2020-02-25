@@ -41,7 +41,7 @@ class MS5540C{
     void spiCheck();
     void measure(int printOut, int raw);
     void factorsFromWords();
-    void secondDegCompPressure();
+    void secondDegCompPressure(int val);
     void calibration(int readOut);
     MS5540C(); //constructor
     //MS5540C();
@@ -101,7 +101,7 @@ void MS5540C::calibration(int readOut = 0)
     Serial.print(" ");
     Serial.println(result1);
   }
- 
+
   cw1 = result1;
 
   resetSensor(); //resets the sensor
@@ -122,7 +122,7 @@ void MS5540C::calibration(int readOut = 0)
     Serial.print(" ");
     Serial.println(result2);
   }
-  
+
   cw2 = result2;
 
   resetSensor(); //resets the sensor
@@ -143,7 +143,7 @@ void MS5540C::calibration(int readOut = 0)
     Serial.print(" ");
     Serial.println(result3);
   }
-  
+
   cw3 = result3;
   resetSensor(); //resets the sensor
 
@@ -163,7 +163,7 @@ void MS5540C::calibration(int readOut = 0)
     Serial.print(" ");
     Serial.println(result4);
   }
-  
+
   cw4 = result4;
 
   //now we do some bitshifting to extract the calibration factors
@@ -188,7 +188,7 @@ void MS5540C::calibration(int readOut = 0)
     Serial.print("c6 = ");
     Serial.println(c6);
   }
-  
+
 
   resetSensor(); //resets the sensor
 }
@@ -221,11 +221,11 @@ void MS5540C::measure(int printOut = 0, int raw = 0){
       Serial.print("D1 - Pressure raw = ");
       Serial.println(D1);
     }
-    
+
     rawPress = D1;
 
     resetSensor(); //resets the sensor
-  
+
   unsigned int tempMSB = 0; //first byte of value
   unsigned int tempLSB = 0; //last byte of value
   unsigned int D2 = 0;
@@ -241,12 +241,12 @@ void MS5540C::measure(int printOut = 0, int raw = 0){
     Serial.print("D2 - Temperature raw = ");
     Serial.println(D2);
   }
-  
+
   rawtemp = D2;
-  
+
   //calculation of the real values by means of the calibration factors and the maths
   //in the datasheet. const MUST be long
-  
+
   const long UT1 = (c5 << 3) + 20224;
   const long dT = D2 - UT1;
   const long TEMP = 200 + ((dT * (c6 + 50)) >> 10);
@@ -278,7 +278,7 @@ void MS5540C::measure(int printOut = 0, int raw = 0){
     Serial.println(c5);
     Serial.print("c6 = ");
     Serial.println(c6);
-    
+
     Serial.print("UT1 = ");
     Serial.println(UT1);
     Serial.print("dT = ");
@@ -292,18 +292,23 @@ void MS5540C::measure(int printOut = 0, int raw = 0){
     Serial.print("X = ");
     Serial.println(X);
   }
-  
-  if(printOut){
-    Serial.print("Real Temperature in C = ");
-    Serial.println(TEMPREAL);
-    Serial.print("Compensated pressure in mbar = ");
-    Serial.println(PCOMPREAL);
-    Serial.print("Compensated pressure in mmHg = ");
-    Serial.println(PCOMPHG);
+  if (TEMPREAL < 20 or TEMPREAL > 45){
+    secondDegCompPressure(printOut)
+  }else{
+    if(printOut){
+      Serial.print("Real Temperature in C = ");
+      Serial.println(TEMPREAL);
+      Serial.print("Compensated pressure in mbar = ");
+      Serial.println(PCOMPREAL);
+      Serial.print("Compensated pressure in mmHg = ");
+      Serial.println(PCOMPHG);
+    }
   }
-  
+
+
+
 }
-void MS5540C::secondDegCompPressure(){
+void MS5540C::secondDegCompPressure(int val){
   //2-nd order compensation only for T < 20°C or T > 45°C
 
   long T2 = 0;
@@ -327,13 +332,20 @@ void MS5540C::secondDegCompPressure(){
 
     float TEMPREAL2 = TEMP2/10;
     float PCOMPHG2 = PCOMP2 * 750.06 / 10000; // mbar*10 -> mmHg === ((mbar/10)/1000)*750/06
+    temp = TEMPREAL2;
+    pcompreal = PCOMP2;
+    pcomphg = PCOMPHG2;
+    pcomp = PCOMP2;
+    ptemp = TEMP;
+    if(val){
+      Serial.print("2-nd Real Temperature in C = ");
+      Serial.println(TEMPREAL2);
 
-    Serial.print("2-nd Real Temperature in C = ");
-    Serial.println(TEMPREAL2);
+      Serial.print("2-nd Compensated pressure in mbar = ");
+      Serial.println(PCOMP2);
+      Serial.print("2-nd Compensated pressure in mmHg = ");
+      Serial.println(PCOMPHG2);
+    }
 
-    Serial.print("2-nd Compensated pressure in mbar = ");
-    Serial.println(PCOMP2);
-    Serial.print("2-nd Compensated pressure in mmHg = ");
-    Serial.println(PCOMPHG2);
   }
 }
